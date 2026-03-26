@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Schema;
 use Webkul\Employee\Models\Employee;
 use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
 use Webkul\MaterialInventory\Enums\MaterialTransactionType;
@@ -19,6 +20,8 @@ class MaterialItem extends Model
 
     /** @internal set during updating to log project assignment */
     public mixed $materialInventoryProjectChangeFrom = null;
+
+    private static ?bool $hasFunctionalColumn = null;
 
     protected $table = 'material_inventory_items';
 
@@ -38,6 +41,7 @@ class MaterialItem extends Model
         'acquisition_cost',
         'is_free',
         'sheet_status',
+        'is_functional',
         'project_id',
         'current_custodian_employee_id',
         'checked_out_at',
@@ -53,6 +57,7 @@ class MaterialItem extends Model
         'expected_return_date'       => 'date',
         'acquisition_cost'           => 'decimal:2',
         'is_free'                    => 'boolean',
+        'is_functional'              => 'boolean',
         'inventory_number_locked'    => 'boolean',
         'checked_out_at'             => 'datetime',
         'sheet_status'               => MaterialSheetStatus::class,
@@ -82,6 +87,28 @@ class MaterialItem extends Model
     public function isDraftInventoryNumber(): bool
     {
         return str_starts_with((string) $this->inventory_number, 'DRAFT-');
+    }
+
+    public static function hasFunctionalColumn(): bool
+    {
+        if (self::$hasFunctionalColumn !== null) {
+            return self::$hasFunctionalColumn;
+        }
+
+        try {
+            return self::$hasFunctionalColumn = Schema::hasColumn('material_inventory_items', 'is_functional');
+        } catch (\Throwable) {
+            return self::$hasFunctionalColumn = false;
+        }
+    }
+
+    public function isFunctional(): bool
+    {
+        if (! self::hasFunctionalColumn()) {
+            return true;
+        }
+
+        return (bool) $this->is_functional;
     }
 
     protected static function booted(): void

@@ -34,6 +34,7 @@ return [
                     'serial_number'    => 'Serial number',
                     'supplier'         => 'Supplier',
                     'sheet_status'     => 'Status (New/Used/Broken/In use)',
+                    'is_functional'    => 'Functional',
                     'storage_location' => 'Location',
                 ],
             ],
@@ -62,6 +63,7 @@ return [
             'manufacturer'             => 'Brand',
             'model'                    => 'Model',
             'sheet_status'             => 'Status',
+            'is_functional'            => 'Functional',
             'storage_location'         => 'Location',
             'custodian'                => 'Assignee',
             'assignment_date'          => 'Assignment date',
@@ -80,7 +82,8 @@ return [
             'label' => 'Check out to employee',
         ],
         'check_in' => [
-            'label' => 'Check in (return)',
+            'label'       => 'Check in (return)',
+            'return_date' => 'Return date',
         ],
         'send_repair' => [
             'label' => 'Send to repair',
@@ -88,10 +91,24 @@ return [
         'return_repair' => [
             'label' => 'Return from repair',
         ],
+        'repair' => [
+            'cost'                => 'Repair cost',
+            'assignment'          => 'Repair cost assignment',
+            'assignment_internal' => 'Internal',
+            'assignment_project'  => 'Project',
+            'project'             => 'Charge project',
+            'end_date'            => 'Repair end date',
+            'functional_after'    => 'Functional after repair',
+        ],
     ],
     'notifications' => [
-        'issue_ok' => 'Formal inventory ID issued.',
-        'budget'   => 'This project does not have enough budget to assign this item (or set the item as free).',
+        'issue_ok'               => 'Formal inventory ID issued.',
+        'budget'                 => 'This project does not have enough budget to assign this item (or set the item as free).',
+        'already_assigned'       => 'Item is already assigned. Return it first before assigning to another employee.',
+        'not_assigned'           => 'Item is not currently assigned to any employee.',
+        'under_repair'           => 'Item is under repair and cannot be assigned.',
+        'non_functional'         => 'Non-functional item cannot be assigned to an employee.',
+        'repair_requires_return' => 'Return the item from employee first, then send it to repair.',
     ],
     'relation-managers' => [
         'transactions' => [

@@ -133,6 +133,11 @@ class MaterialItemResource extends Resource
                             ->options(self::materialStatusOptions())
                             ->default(MaterialSheetStatus::Nuovo->value)
                             ->required(),
+                        Toggle::make('is_functional')
+                            ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.is_functional'))
+                            ->dehydrated(fn (): bool => MaterialItem::hasFunctionalColumn())
+                            ->visible(fn (): bool => MaterialItem::hasFunctionalColumn())
+                            ->default(true),
                         TextInput::make('storage_location')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.storage_location'))
                             ->default(fn () => self::defaultStorageLocation())
@@ -202,6 +207,9 @@ class MaterialItemResource extends Resource
                         TextEntry::make('supplier'),
                         TextEntry::make('sheet_status')
                             ->formatStateUsing(fn (?MaterialSheetStatus $state) => self::materialStatusOptions()[$state?->value] ?? $state?->excelLabel() ?? ''),
+                        TextEntry::make('is_functional')
+                            ->label(__('material-inventory::filament/resources/material-item.table.columns.is_functional'))
+                            ->formatStateUsing(fn (?bool $state): string => $state ? 'Yes' : 'No'),
                         TextEntry::make('storage_location')->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -248,6 +256,10 @@ class MaterialItemResource extends Resource
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.sheet_status'))
                     ->badge()
                     ->formatStateUsing(fn (?MaterialSheetStatus $state) => self::materialStatusOptions()[$state?->value] ?? $state?->excelLabel() ?? ''),
+                TextColumn::make('is_functional')
+                    ->label(__('material-inventory::filament/resources/material-item.table.columns.is_functional'))
+                    ->badge()
+                    ->formatStateUsing(fn (?bool $state): string => $state ? 'Yes' : 'No'),
                 TextColumn::make('storage_location')
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.storage_location'))
                     ->toggleable(isToggledHiddenByDefault: true),
