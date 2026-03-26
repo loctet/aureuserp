@@ -78,7 +78,7 @@ class AdminPanelProvider extends PanelProvider
                     ->icon('icon-inventories'),
                 NavigationGroup::make()
                     ->label(__('admin.navigation.material-inventory'))
-                    ->icon('heroicon-o-cube'),
+                    ->icon('icon-material-inventory'),
                 NavigationGroup::make()
                     ->label(__('admin.navigation.project'))
                     ->icon('icon-projects'),

@@ -3,7 +3,9 @@
 namespace Webkul\MaterialInventory;
 
 use Filament\Contracts\Plugin;
+use Filament\Navigation\NavigationItem;
 use Filament\Panel;
+use Webkul\MaterialInventory\Filament\Clusters\Settings\Pages\ManageMaterialInventory;
 use Webkul\PluginManager\Package;
 
 class MaterialInventoryPlugin implements Plugin
@@ -42,7 +44,15 @@ class MaterialInventoryPlugin implements Plugin
                     ->discoverWidgets(
                         in: __DIR__.'/Filament/Widgets',
                         for: 'Webkul\\MaterialInventory\\Filament\\Widgets'
-                    );
+                    )
+                    ->navigationItems([
+                        NavigationItem::make('settings')
+                            ->label(fn () => __('material-inventory::app.navigation.settings.label'))
+                            ->url(fn () => ManageMaterialInventory::getUrl())
+                            ->group(__('material-inventory::app.navigation.settings.group'))
+                            ->sort(4)
+                            ->visible(fn () => ManageMaterialInventory::canAccess()),
+                    ]);
             });
     }
 

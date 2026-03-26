@@ -8,6 +8,7 @@ use Webkul\Employee\Models\Employee;
 use Webkul\MaterialInventory\Models\MaterialInventoryTransaction;
 use Webkul\MaterialInventory\Models\MaterialItem;
 use Webkul\MaterialInventory\Services\MaterialProjectBudgetGuard;
+use Webkul\MaterialInventory\Support\MaterialInventoryOptions;
 use Webkul\PluginManager\Console\Commands\InstallCommand;
 use Webkul\PluginManager\Console\Commands\UninstallCommand;
 use Webkul\PluginManager\Package;
@@ -43,12 +44,16 @@ class MaterialInventoryServiceProvider extends PackageServiceProvider
                 '2026_03_26_100001_add_return_fields_to_material_inventory_transactions',
             ])
             ->runsMigrations()
+            ->hasSettings([
+                '2026_03_26_140001_create_material_inventory_general_settings',
+            ])
+            ->runsSettings()
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->runsMigrations();
             })
             ->hasUninstallCommand(function (UninstallCommand $command) {})
-            ->icon('inventories');
+            ->icon('material-inventory');
     }
 
     public function packageBooted(): void
@@ -74,6 +79,10 @@ class MaterialInventoryServiceProvider extends PackageServiceProvider
         }
 
         MaterialItem::saving(function (MaterialItem $item): void {
+            if (! MaterialInventoryOptions::enforceProjectBudget()) {
+                return;
+            }
+
             if (! $item->project_id) {
                 return;
             }

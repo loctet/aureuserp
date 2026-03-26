@@ -215,9 +215,10 @@ return [
             'show_guards' => true, // Show the guards that are used
         ],
         'db' => [
-            'with_params'       => true,   // Render SQL with the parameters substituted
+            // Avoid memory spikes when large payloads (like DB session blobs) are bound to queries.
+            'with_params'       => false,   // Render SQL with placeholders instead of substituted parameters
             'exclude_paths'     => [       // Paths to exclude entirely from the collector
-                //                'vendor/laravel/framework/src/Illuminate/Session', // Exclude sessions queries
+                'vendor/laravel/framework/src/Illuminate/Session', // Exclude sessions queries
             ],
             'backtrace'               => true,   // Use a backtrace to find the origin of the query in your files.
             'backtrace_exclude_paths' => [],   // Paths to exclude from backtrace. (in addition to defaults)

@@ -10,6 +10,7 @@ use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStrictNullComparison;
 use Maatwebsite\Excel\Concerns\WithTitle;
 use Webkul\MaterialInventory\Models\MaterialItem;
+use Webkul\MaterialInventory\Support\MaterialInventoryOptions;
 
 class InventoryMaterialeSheetExport implements FromCollection, ShouldAutoSize, WithHeadings, WithMapping, WithStrictNullComparison, WithTitle
 {
@@ -60,7 +61,7 @@ class InventoryMaterialeSheetExport implements FromCollection, ShouldAutoSize, W
      */
     public function map($row): array
     {
-        $status = $row->sheet_status?->excelLabel() ?? '';
+        $status = MaterialInventoryOptions::humanizeStatus((string) $row->sheet_status);
 
         return [
             $row->inventory_number,
