@@ -5,6 +5,7 @@ namespace Webkul\MaterialInventory\Filament\Resources;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -141,6 +142,15 @@ class MaterialItemResource extends Resource
                         TextInput::make('storage_location')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.storage_location'))
                             ->default(fn () => self::defaultStorageLocation())
+                            ->columnSpanFull(),
+                        FileUpload::make('images')
+                            ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.images'))
+                            ->disk('public')
+                            ->directory('material-inventory/items')
+                            ->multiple()
+                            ->image()
+                            ->dehydrated(fn (): bool => MaterialItem::hasImagesColumn())
+                            ->visible(fn (): bool => MaterialItem::hasImagesColumn())
                             ->columnSpanFull(),
                     ])
                     ->columns(2),

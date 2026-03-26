@@ -42,6 +42,7 @@ class MaterialInventoryServiceProvider extends PackageServiceProvider
                 '2026_03_26_100000_align_material_inventory_with_excel_sheet',
                 '2026_03_26_100001_add_return_fields_to_material_inventory_transactions',
                 '2026_03_26_150000_add_is_functional_to_material_inventory_items',
+                '2026_03_26_160000_add_images_to_material_inventory_items',
             ])
             ->runsMigrations()
             ->hasSettings([

@@ -22,6 +22,7 @@ class MaterialItem extends Model
     public mixed $materialInventoryProjectChangeFrom = null;
 
     private static ?bool $hasFunctionalColumn = null;
+    private static ?bool $hasImagesColumn = null;
 
     protected $table = 'material_inventory_items';
 
@@ -49,6 +50,7 @@ class MaterialItem extends Model
         'expected_return_date',
         'storage_location',
         'notes',
+        'images',
     ];
 
     protected $casts = [
@@ -61,6 +63,7 @@ class MaterialItem extends Model
         'inventory_number_locked'    => 'boolean',
         'checked_out_at'             => 'datetime',
         'sheet_status'               => MaterialSheetStatus::class,
+        'images'                     => 'array',
     ];
 
     public function company(): BelongsTo
@@ -109,6 +112,19 @@ class MaterialItem extends Model
         }
 
         return (bool) $this->is_functional;
+    }
+
+    public static function hasImagesColumn(): bool
+    {
+        if (self::$hasImagesColumn !== null) {
+            return self::$hasImagesColumn;
+        }
+
+        try {
+            return self::$hasImagesColumn = Schema::hasColumn('material_inventory_items', 'images');
+        } catch (\Throwable) {
+            return self::$hasImagesColumn = false;
+        }
     }
 
     protected static function booted(): void

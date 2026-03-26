@@ -36,6 +36,7 @@ return [
                     'sheet_status'     => 'Status (New/Used/Broken/In use)',
                     'is_functional'    => 'Functional',
                     'storage_location' => 'Location',
+                    'images'           => 'Images',
                 ],
             ],
             'custody' => [
@@ -91,12 +92,14 @@ return [
         'return_repair' => [
             'label' => 'Return from repair',
         ],
+        'images' => 'Images (optional)',
         'repair' => [
             'cost'                => 'Repair cost',
             'assignment'          => 'Repair cost assignment',
             'assignment_internal' => 'Internal',
             'assignment_project'  => 'Project',
             'project'             => 'Charge project',
+            'start_date'          => 'Repair start date',
             'end_date'            => 'Repair end date',
             'functional_after'    => 'Functional after repair',
         ],

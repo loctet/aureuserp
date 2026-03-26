@@ -5,6 +5,7 @@ namespace Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -66,6 +67,12 @@ class ViewMaterialItem extends ViewRecord
                         ->default(now())
                         ->native(false)
                         ->required(),
+                    FileUpload::make('attachments')
+                        ->label(__('material-inventory::filament/resources/material-item.actions.images'))
+                        ->disk('public')
+                        ->directory('material-inventory/events/check-out')
+                        ->multiple()
+                        ->image(),
                 ])
                 ->action(function (MaterialItem $record, array $data): void {
                     if ($record->current_custodian_employee_id) {
@@ -101,6 +108,10 @@ class ViewMaterialItem extends ViewRecord
                         'to_employee_id'     => $data['employee_id'],
                         'condition_before'   => $before,
                         'condition_after'    => MaterialSheetStatus::InUso->value,
+                        'meta'               => [
+                            'assignment_date' => $data['assignment_date'] ?? now()->toDateString(),
+                            'attachments'     => $data['attachments'] ?? [],
+                        ],
                     ]);
 
                     Notification::make()->success()->title(__('material-inventory::filament/resources/material-item.actions.check_out.label'))->send();
@@ -127,6 +138,12 @@ class ViewMaterialItem extends ViewRecord
                         ->default(now())
                         ->native(false)
                         ->required(),
+                    FileUpload::make('attachments')
+                        ->label(__('material-inventory::filament/resources/material-item.actions.images'))
+                        ->disk('public')
+                        ->directory('material-inventory/events/check-in')
+                        ->multiple()
+                        ->image(),
                     Textarea::make('notes')->label(__('material-inventory::filament/resources/material-item.form.sections.custody.fields.notes')),
                 ])
                 ->action(function (MaterialItem $record, array $data): void {
@@ -156,6 +173,7 @@ class ViewMaterialItem extends ViewRecord
                         'notes'              => $data['notes'] ?? null,
                         'meta'               => [
                             'return_date' => $data['return_date'] ?? now()->toDateString(),
+                            'attachments' => $data['attachments'] ?? [],
                         ],
                     ]);
 
@@ -167,6 +185,17 @@ class ViewMaterialItem extends ViewRecord
                 ->icon('heroicon-o-wrench-screwdriver')
                 ->visible(fn (MaterialItem $record): bool => $record->sheet_status !== MaterialSheetStatus::InRiparazione)
                 ->schema([
+                    DatePicker::make('repair_start_date')
+                        ->label(__('material-inventory::filament/resources/material-item.actions.repair.start_date'))
+                        ->default(now())
+                        ->native(false)
+                        ->required(),
+                    FileUpload::make('attachments')
+                        ->label(__('material-inventory::filament/resources/material-item.actions.images'))
+                        ->disk('public')
+                        ->directory('material-inventory/events/send-repair')
+                        ->multiple()
+                        ->image(),
                     Textarea::make('notes')->required(),
                 ])
                 ->action(function (MaterialItem $record, array $data): void {
@@ -186,6 +215,10 @@ class ViewMaterialItem extends ViewRecord
                         'condition_before' => $before,
                         'condition_after'  => MaterialSheetStatus::InRiparazione->value,
                         'notes'            => $data['notes'],
+                        'meta'             => [
+                            'repair_start_date' => $data['repair_start_date'] ?? now()->toDateString(),
+                            'attachments'       => $data['attachments'] ?? [],
+                        ],
                     ]);
 
                     Notification::make()->success()->send();
@@ -209,8 +242,15 @@ class ViewMaterialItem extends ViewRecord
                         ->required(),
                     DatePicker::make('repair_end_date')
                         ->label(__('material-inventory::filament/resources/material-item.actions.repair.end_date'))
+                        ->default(now())
                         ->native(false)
                         ->required(),
+                    FileUpload::make('attachments')
+                        ->label(__('material-inventory::filament/resources/material-item.actions.images'))
+                        ->disk('public')
+                        ->directory('material-inventory/events/close-repair')
+                        ->multiple()
+                        ->image(),
                     TextInput::make('repair_cost')
                         ->label(__('material-inventory::filament/resources/material-item.actions.repair.cost'))
                         ->numeric()
@@ -280,6 +320,7 @@ class ViewMaterialItem extends ViewRecord
                             'repair_cost_assignment' => $data['repair_cost_assignment'] ?? 'internal',
                             'repair_project_id'      => $data['repair_project_id'] ?? null,
                             'functional_after'       => $isFunctional,
+                            'attachments'            => $data['attachments'] ?? [],
                         ],
                     ]);
 
