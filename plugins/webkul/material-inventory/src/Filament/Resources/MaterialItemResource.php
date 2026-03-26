@@ -20,13 +20,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\CreateMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\EditMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\ListMaterialItems;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\ViewMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\RelationManagers\TransactionsRelationManager;
 use Webkul\MaterialInventory\Models\MaterialItem;
-use Webkul\MaterialInventory\Support\MaterialInventoryOptions;
 use Webkul\Project\Filament\Resources\ProjectResource;
 use Webkul\Security\Filament\Resources\CompanyResource;
 
@@ -69,7 +69,7 @@ class MaterialItemResource extends Resource
     {
         /** @var MaterialItem $record */
         return [
-            __('material-inventory::filament/resources/material-item.table.columns.sheet_status') => MaterialInventoryOptions::humanizeStatus((string) $record->sheet_status),
+            __('material-inventory::filament/resources/material-item.table.columns.sheet_status') => $record->sheet_status?->excelLabel() ?? '—',
         ];
     }
 
@@ -107,7 +107,12 @@ class MaterialItemResource extends Resource
                     ->schema([
                         Select::make('category')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.category'))
-                            ->options(fn () => MaterialInventoryOptions::categoryOptions())
+                            ->options([
+                                'N-Notebook'               => 'N-Notebook',
+                                'O-Asset Office'           => 'O-Asset Office',
+                                'L-Licenze SW ufficio'     => 'L-Licenze SW ufficio',
+                                'S-Strumentazione HW'      => 'S-Strumentazione HW',
+                            ])
                             ->searchable()
                             ->required(),
                         DatePicker::make('acquisition_date')
@@ -128,8 +133,10 @@ class MaterialItemResource extends Resource
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.supplier')),
                         Select::make('sheet_status')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.sheet_status'))
-                            ->options(fn () => MaterialInventoryOptions::statusOptions())
-                            ->default(fn () => MaterialInventoryOptions::defaultStatus())
+                            ->options(collect(MaterialSheetStatus::cases())->mapWithKeys(
+                                fn (MaterialSheetStatus $s) => [$s->value => $s->excelLabel()]
+                            ))
+                            ->default(MaterialSheetStatus::Nuovo->value)
                             ->required(),
                         TextInput::make('storage_location')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.storage_location'))
@@ -197,7 +204,7 @@ class MaterialItemResource extends Resource
                         TextEntry::make('serial_number'),
                         TextEntry::make('supplier'),
                         TextEntry::make('sheet_status')
-                            ->formatStateUsing(fn (?string $state) => MaterialInventoryOptions::humanizeStatus((string) $state)),
+                            ->formatStateUsing(fn (?MaterialSheetStatus $state) => $state?->excelLabel() ?? ''),
                         TextEntry::make('storage_location')->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -242,7 +249,7 @@ class MaterialItemResource extends Resource
                 TextColumn::make('sheet_status')
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.sheet_status'))
                     ->badge()
-                    ->formatStateUsing(fn (?string $state) => MaterialInventoryOptions::humanizeStatus((string) $state)),
+                    ->formatStateUsing(fn (?MaterialSheetStatus $state) => $state?->excelLabel() ?? ''),
                 TextColumn::make('storage_location')
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.storage_location'))
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -256,9 +263,16 @@ class MaterialItemResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('sheet_status')
-                    ->options(fn () => MaterialInventoryOptions::statusOptions()),
+                    ->options(collect(MaterialSheetStatus::cases())->mapWithKeys(
+                        fn (MaterialSheetStatus $s) => [$s->value => $s->excelLabel()]
+                    )),
                 SelectFilter::make('category')
-                    ->options(fn () => MaterialInventoryOptions::categoryOptions()),
+                    ->options([
+                        'N-Notebook'           => 'N-Notebook',
+                        'O-Asset Office'       => 'O-Asset Office',
+                        'L-Licenze SW ufficio' => 'L-Licenze SW ufficio',
+                        'S-Strumentazione HW'  => 'S-Strumentazione HW',
+                    ]),
                 SelectFilter::make('project_id')
                     ->relationship('project', 'name')
                     ->searchable()

@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Webkul\Employee\Models\Employee;
+use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
 use Webkul\MaterialInventory\Enums\MaterialTransactionType;
 use Webkul\MaterialInventory\Services\MaterialInventoryTransactionRecorder;
 use Webkul\Project\Models\Project;
@@ -54,6 +55,7 @@ class MaterialItem extends Model
         'is_free'                    => 'boolean',
         'inventory_number_locked'    => 'boolean',
         'checked_out_at'             => 'datetime',
+        'sheet_status'               => MaterialSheetStatus::class,
     ];
 
     public function company(): BelongsTo
