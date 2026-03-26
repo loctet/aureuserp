@@ -5,9 +5,11 @@ namespace Webkul\BulkImport\Filament\Actions;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Filament\Notifications\Actions\Action as NotificationAction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Response;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 class BulkCsvActions
@@ -63,6 +65,7 @@ class BulkCsvActions
 
                 $created = 0;
                 $errors = [];
+                $failedRows = [];
 
                 foreach ($parsed['rows'] as $rowIndex => $row) {
                     try {
@@ -79,7 +82,15 @@ class BulkCsvActions
                         $modelClass::create($payload);
                         $created++;
                     } catch (Throwable $e) {
-                        $errors[] = 'Row '.($rowIndex + 2).': '.$e->getMessage();
+                        $rowNumber = $rowIndex + 2;
+                        $message = $e->getMessage();
+
+                        $errors[] = "Row {$rowNumber}: {$message}";
+                        $failedRows[] = [
+                            'row_number' => $rowNumber,
+                            'error'      => $message,
+                            'row'        => $row,
+                        ];
                     }
                 }
 
@@ -93,6 +104,11 @@ class BulkCsvActions
                     return;
                 }
 
+                $failedFilePath = self::writeFailedRowsCsv(
+                    headers: $parsed['headers'],
+                    failedRows: $failedRows,
+                );
+
                 Notification::make()
                     ->warning()
                     ->title('Import completed with errors')
@@ -100,6 +116,11 @@ class BulkCsvActions
                         "Imported {$created} rows. Failed ".count($errors).' rows. '
                         .'First errors: '.implode(' | ', array_slice($errors, 0, 3))
                     )
+                    ->actions([
+                        NotificationAction::make('download_failed_rows')
+                            ->label('Download failed_rows.csv')
+                            ->url(Storage::disk('public')->url($failedFilePath), shouldOpenInNewTab: true),
+                    ])
                     ->send();
             });
     }
@@ -199,5 +220,37 @@ class BulkCsvActions
             'bool' => filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false,
             default => $value,
         };
+    }
+
+    /**
+     * @param  list<string>  $headers
+     * @param  list<array{row_number:int,error:string,row:array<string,mixed>}>  $failedRows
+     */
+    protected static function writeFailedRowsCsv(array $headers, array $failedRows): string
+    {
+        $directory = 'bulk-import-failures';
+        $fileName = 'failed_rows_'.now()->format('Ymd_His').'_'.Str::random(6).'.csv';
+        $path = $directory.'/'.$fileName;
+
+        $handle = fopen('php://temp', 'r+');
+        fputcsv($handle, array_merge(['row_number', 'error'], $headers));
+
+        foreach ($failedRows as $failedRow) {
+            $csvRow = [$failedRow['row_number'], $failedRow['error']];
+
+            foreach ($headers as $header) {
+                $csvRow[] = $failedRow['row'][$header] ?? '';
+            }
+
+            fputcsv($handle, $csvRow);
+        }
+
+        rewind($handle);
+        $contents = stream_get_contents($handle) ?: '';
+        fclose($handle);
+
+        Storage::disk('public')->put($path, $contents);
+
+        return $path;
     }
 }
