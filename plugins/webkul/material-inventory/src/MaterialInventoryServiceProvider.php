@@ -43,6 +43,10 @@ class MaterialInventoryServiceProvider extends PackageServiceProvider
                 '2026_03_26_100001_add_return_fields_to_material_inventory_transactions',
             ])
             ->runsMigrations()
+            ->hasSettings([
+                '2026_03_26_120000_create_material_inventory_settings',
+            ])
+            ->runsSettings()
             ->hasInstallCommand(function (InstallCommand $command) {
                 $command
                     ->runsMigrations();

@@ -92,11 +92,13 @@ class ViewMaterialItem extends ViewRecord
                 ->schema([
                     Select::make('return_condition')
                         ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.sheet_status'))
-                        ->options([
-                            MaterialSheetStatus::Nuovo->value   => MaterialSheetStatus::Nuovo->excelLabel(),
-                            MaterialSheetStatus::Usato->value   => MaterialSheetStatus::Usato->excelLabel(),
-                            MaterialSheetStatus::Guasto->value  => MaterialSheetStatus::Guasto->excelLabel(),
-                        ])
+                        ->options(collect(MaterialItemResource::materialStatusOptions())
+                            ->only([
+                                MaterialSheetStatus::Nuovo->value,
+                                MaterialSheetStatus::Usato->value,
+                                MaterialSheetStatus::Guasto->value,
+                            ])
+                            ->all())
                         ->default(MaterialSheetStatus::Usato->value)
                         ->required(),
                     Textarea::make('notes')->label(__('material-inventory::filament/resources/material-item.form.sections.custody.fields.notes')),
@@ -154,11 +156,13 @@ class ViewMaterialItem extends ViewRecord
                 ->schema([
                     Select::make('sheet_status')
                         ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.sheet_status'))
-                        ->options([
-                            MaterialSheetStatus::Usato->value   => MaterialSheetStatus::Usato->excelLabel(),
-                            MaterialSheetStatus::Nuovo->value   => MaterialSheetStatus::Nuovo->excelLabel(),
-                            MaterialSheetStatus::Guasto->value  => MaterialSheetStatus::Guasto->excelLabel(),
-                        ])
+                        ->options(collect(MaterialItemResource::materialStatusOptions())
+                            ->only([
+                                MaterialSheetStatus::Usato->value,
+                                MaterialSheetStatus::Nuovo->value,
+                                MaterialSheetStatus::Guasto->value,
+                            ])
+                            ->all())
                         ->default(MaterialSheetStatus::Usato->value)
                         ->required(),
                     Textarea::make('notes'),

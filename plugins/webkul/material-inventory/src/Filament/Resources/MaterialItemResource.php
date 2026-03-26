@@ -20,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Spatie\LaravelSettings\Exceptions\MissingSettings;
 use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\CreateMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\EditMaterialItem;
@@ -27,6 +28,7 @@ use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\ListM
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\ViewMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\RelationManagers\TransactionsRelationManager;
 use Webkul\MaterialInventory\Models\MaterialItem;
+use Webkul\MaterialInventory\Settings\MaterialInventorySettings;
 use Webkul\Project\Filament\Resources\ProjectResource;
 use Webkul\Security\Filament\Resources\CompanyResource;
 
@@ -107,12 +109,7 @@ class MaterialItemResource extends Resource
                     ->schema([
                         Select::make('category')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.category'))
-                            ->options([
-                                'N-Notebook'               => 'N-Notebook',
-                                'O-Asset Office'           => 'O-Asset Office',
-                                'L-Licenze SW ufficio'     => 'L-Licenze SW ufficio',
-                                'S-Strumentazione HW'      => 'S-Strumentazione HW',
-                            ])
+                            ->options(self::materialCategoryOptions())
                             ->searchable()
                             ->required(),
                         DatePicker::make('acquisition_date')
@@ -133,13 +130,12 @@ class MaterialItemResource extends Resource
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.supplier')),
                         Select::make('sheet_status')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.sheet_status'))
-                            ->options(collect(MaterialSheetStatus::cases())->mapWithKeys(
-                                fn (MaterialSheetStatus $s) => [$s->value => $s->excelLabel()]
-                            ))
+                            ->options(self::materialStatusOptions())
                             ->default(MaterialSheetStatus::Nuovo->value)
                             ->required(),
                         TextInput::make('storage_location')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.asset.fields.storage_location'))
+                            ->default(fn () => self::defaultStorageLocation())
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -162,7 +158,8 @@ class MaterialItemResource extends Resource
                             ->disabled(),
                         DatePicker::make('expected_return_date')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.custody.fields.expected_return_date'))
-                            ->native(false),
+                            ->native(false)
+                            ->required(fn () => self::requireExpectedReturnDateOnCheckout()),
                         Select::make('project_id')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.custody.fields.project_id'))
                             ->relationship('project', 'name', fn (Builder $query) => $query->orderBy('name'))
@@ -204,7 +201,7 @@ class MaterialItemResource extends Resource
                         TextEntry::make('serial_number'),
                         TextEntry::make('supplier'),
                         TextEntry::make('sheet_status')
-                            ->formatStateUsing(fn (?MaterialSheetStatus $state) => $state?->excelLabel() ?? ''),
+                            ->formatStateUsing(fn (?MaterialSheetStatus $state) => self::materialStatusOptions()[$state?->value] ?? $state?->excelLabel() ?? ''),
                         TextEntry::make('storage_location')->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -249,7 +246,7 @@ class MaterialItemResource extends Resource
                 TextColumn::make('sheet_status')
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.sheet_status'))
                     ->badge()
-                    ->formatStateUsing(fn (?MaterialSheetStatus $state) => $state?->excelLabel() ?? ''),
+                    ->formatStateUsing(fn (?MaterialSheetStatus $state) => self::materialStatusOptions()[$state?->value] ?? $state?->excelLabel() ?? ''),
                 TextColumn::make('storage_location')
                     ->label(__('material-inventory::filament/resources/material-item.table.columns.storage_location'))
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -263,16 +260,9 @@ class MaterialItemResource extends Resource
             ])
             ->filters([
                 SelectFilter::make('sheet_status')
-                    ->options(collect(MaterialSheetStatus::cases())->mapWithKeys(
-                        fn (MaterialSheetStatus $s) => [$s->value => $s->excelLabel()]
-                    )),
+                    ->options(self::materialStatusOptions()),
                 SelectFilter::make('category')
-                    ->options([
-                        'N-Notebook'           => 'N-Notebook',
-                        'O-Asset Office'       => 'O-Asset Office',
-                        'L-Licenze SW ufficio' => 'L-Licenze SW ufficio',
-                        'S-Strumentazione HW'  => 'S-Strumentazione HW',
-                    ]),
+                    ->options(self::materialCategoryOptions()),
                 SelectFilter::make('project_id')
                     ->relationship('project', 'name')
                     ->searchable()
@@ -304,5 +294,66 @@ class MaterialItemResource extends Resource
             'view'   => ViewMaterialItem::route('/{record}'),
             'edit'   => EditMaterialItem::route('/{record}/edit'),
         ];
+    }
+
+    public static function materialStatusOptions(): array
+    {
+        $defaults = collect(MaterialSheetStatus::cases())
+            ->mapWithKeys(fn (MaterialSheetStatus $status) => [$status->value => $status->excelLabel()])
+            ->all();
+
+        $settings = self::resolveMaterialInventorySettings();
+
+        $configured = collect($settings?->status_list ?? [])
+            ->filter(fn (mixed $row): bool => is_array($row) && filled($row['value'] ?? null) && filled($row['label'] ?? null))
+            ->mapWithKeys(fn (array $row) => [(string) $row['value'] => (string) $row['label']])
+            ->only(array_keys($defaults))
+            ->all();
+
+        return $configured !== [] ? $configured : $defaults;
+    }
+
+    public static function materialCategoryOptions(): array
+    {
+        $defaults = [
+            'N-Notebook'           => 'N-Notebook',
+            'O-Asset Office'       => 'O-Asset Office',
+            'L-Licenze SW ufficio' => 'L-Licenze SW ufficio',
+            'S-Strumentazione HW'  => 'S-Strumentazione HW',
+        ];
+
+        $settings = self::resolveMaterialInventorySettings();
+
+        $configured = collect($settings?->category_list ?? [])
+            ->filter(fn (mixed $value): bool => is_string($value) && filled(trim($value)))
+            ->mapWithKeys(fn (string $value) => [trim($value) => trim($value)])
+            ->all();
+
+        return $configured !== [] ? $configured : $defaults;
+    }
+
+    protected static function defaultStorageLocation(): string
+    {
+        return (string) (self::resolveMaterialInventorySettings()?->default_storage_location ?? '');
+    }
+
+    protected static function requireExpectedReturnDateOnCheckout(): bool
+    {
+        return (bool) (self::resolveMaterialInventorySettings()?->require_expected_return_date_on_checkout ?? false);
+    }
+
+    protected static function resolveMaterialInventorySettings(): ?MaterialInventorySettings
+    {
+        try {
+            $settings = app(MaterialInventorySettings::class);
+
+            // Access one property so MissingSettings is raised here (if not migrated yet),
+            // allowing the resource to transparently fallback to defaults.
+            $settings->category_list;
+
+            return $settings;
+        } catch (MissingSettings) {
+            return null;
+        }
     }
 }
