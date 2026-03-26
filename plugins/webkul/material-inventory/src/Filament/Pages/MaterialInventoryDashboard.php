@@ -15,9 +15,9 @@ use Webkul\MaterialInventory\Filament\Widgets\MaterialsOverviewStatsWidget;
 
 class MaterialInventoryDashboard extends BaseDashboard
 {
-    protected static string $routePath = 'material-inventory';
+    protected static string $routePath = 'material-inventory/dashboard';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 0;
 
     public static function shouldRegisterNavigation(): bool
     {

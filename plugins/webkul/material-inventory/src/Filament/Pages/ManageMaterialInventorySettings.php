@@ -14,7 +14,7 @@ use Webkul\MaterialInventory\Settings\MaterialInventorySettings;
 
 class ManageMaterialInventorySettings extends SettingsPage
 {
-    protected static ?string $slug = 'material-inventory/manage-material-inventory-settings';
+    protected static ?string $slug = 'material-inventory/settings';
 
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cog-6-tooth';
 

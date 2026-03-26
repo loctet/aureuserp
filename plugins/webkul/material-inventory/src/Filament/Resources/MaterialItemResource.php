@@ -3,6 +3,7 @@
 namespace Webkul\MaterialInventory\Filament\Resources;
 
 use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -23,6 +24,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Spatie\LaravelSettings\Exceptions\MissingSettings;
 use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
+use Webkul\MaterialInventory\Filament\Pages\MaterialInventoryDashboard;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\CreateMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\EditMaterialItem;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages\ListMaterialItems;
@@ -56,6 +58,11 @@ class MaterialItemResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return __('admin.navigation.material-inventory');
+    }
+
+    public static function getNavigationUrl(): string
+    {
+        return MaterialInventoryDashboard::getUrl();
     }
 
     public static function getGloballySearchableAttributes(): array
@@ -301,6 +308,7 @@ class MaterialItemResource extends Resource
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
+                DeleteAction::make(),
             ]);
     }
 

@@ -3,6 +3,7 @@
 namespace Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\Pages;
 
 use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
@@ -328,6 +329,7 @@ class ViewMaterialItem extends ViewRecord
                     $this->record = $record->fresh();
                 }),
             EditAction::make(),
+            DeleteAction::make(),
         ];
     }
 }
