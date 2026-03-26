@@ -7,7 +7,9 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use Webkul\BulkImport\Filament\Actions\BulkCsvActions;
 use Webkul\Employee\Filament\Resources\EmployeeResource;
+use Webkul\Employee\Models\Employee;
 use Webkul\TableViews\Filament\Components\PresetView;
 use Webkul\TableViews\Filament\Concerns\HasTableViews;
 
@@ -20,6 +22,31 @@ class ListEmployees extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
+            BulkCsvActions::makeImportAction(
+                Employee::class,
+                [
+                    'company_id'   => 'int',
+                    'name'         => 'string',
+                    'work_email'   => 'string',
+                    'job_title'    => 'string',
+                    'mobile_phone' => 'string',
+                    'work_phone'   => 'string',
+                    'is_active'    => 'bool',
+                ],
+            ),
+            BulkCsvActions::makeTemplateAction(
+                'employees-template.csv',
+                ['company_id', 'name', 'work_email', 'job_title', 'mobile_phone', 'work_phone', 'is_active'],
+                [
+                    'company_id'   => 1,
+                    'name'         => 'John Doe',
+                    'work_email'   => 'john@example.com',
+                    'job_title'    => 'Software Engineer',
+                    'mobile_phone' => '+1555000111',
+                    'work_phone'   => '+1555000222',
+                    'is_active'    => 'true',
+                ],
+            ),
             CreateAction::make()
                 ->icon('heroicon-o-plus-circle')
                 ->label(__('employees::filament/resources/employee/pages/list-employee.header-actions.create.label')),

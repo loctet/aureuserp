@@ -7,6 +7,7 @@ use Webkul\Account\AccountServiceProvider;
 use Webkul\Accounting\AccountingServiceProvider;
 use Webkul\Analytic\AnalyticServiceProvider;
 use Webkul\Blog\BlogServiceProvider;
+use Webkul\BulkImport\BulkImportServiceProvider;
 use Webkul\Chatter\ChatterServiceProvider;
 use Webkul\Contact\ContactServiceProvider;
 use Webkul\Employee\EmployeeServiceProvider;
@@ -38,6 +39,7 @@ return [
     AccountServiceProvider::class,
     AnalyticServiceProvider::class,
     BlogServiceProvider::class,
+    BulkImportServiceProvider::class,
     ChatterServiceProvider::class,
     ContactServiceProvider::class,
     EmployeeServiceProvider::class,

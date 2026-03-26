@@ -1,0 +1,23 @@
+{
+    "name": "webkul/bulk-import",
+    "description": "Reusable bulk CSV import actions for Filament resources",
+    "authors": [
+        {
+            "name": "Aureus ERP",
+            "email": "support@aureuserp.in"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\BulkImport\\BulkImportServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Webkul\\BulkImport\\": "src/"
+        }
+    }
+}
