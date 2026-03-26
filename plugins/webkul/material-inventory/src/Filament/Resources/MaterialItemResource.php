@@ -212,7 +212,8 @@ class MaterialItemResource extends Resource
                         TextEntry::make('expected_return_date')->date('d/m/Y'),
                         TextEntry::make('project.name')->label(__('material-inventory::filament/resources/material-item.table.columns.project')),
                         TextEntry::make('acquisition_cost')->money('EUR'),
-                        TextEntry::make('is_free')->boolean(),
+                        TextEntry::make('is_free')
+                            ->formatStateUsing(fn (?bool $state): string => $state ? 'Yes' : 'No'),
                         TextEntry::make('notes')->columnSpanFull(),
                     ])
                     ->columns(2),
