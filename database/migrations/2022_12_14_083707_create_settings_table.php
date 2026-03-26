@@ -11,8 +11,9 @@ return new class extends Migration
         Schema::create('settings', function (Blueprint $table): void {
             $table->id();
 
-            $table->string('group');
-            $table->string('name');
+            // Keep indexed strings short for older MySQL/MariaDB index limits.
+            $table->string('group', 100);
+            $table->string('name', 100);
             $table->boolean('locked')->default(false);
             $table->json('payload');
 

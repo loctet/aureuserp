@@ -75,6 +75,10 @@ use Webkul\Employee\Filament\Resources\EmployeeResource\RelationManagers\SkillsR
 use Webkul\Employee\Models\Calendar;
 use Webkul\Employee\Models\Employee;
 use Webkul\Field\Filament\Traits\HasCustomFields;
+use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialItemsRelationManager;
+use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialTransactionsReceivedRelationManager;
+use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialTransactionsSentRelationManager;
+use Webkul\PluginManager\Package;
 use Webkul\Security\Filament\Resources\CompanyResource;
 use Webkul\Security\Filament\Resources\UserResource;
 use Webkul\Security\Models\User;
@@ -86,7 +90,7 @@ class EmployeeResource extends Resource
 
     protected static ?string $model = Employee::class;
 
-    protected static ?\Filament\Pages\Enums\SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -1796,6 +1800,15 @@ class EmployeeResource extends Resource
             ])
                 ->icon('heroicon-o-clipboard-document-list'),
         ];
+
+        if (class_exists(EmployeeMaterialItemsRelationManager::class) && Package::isPluginInstalled('material-inventory')) {
+            $relations[] = RelationGroup::make(__('material-inventory::filament/resources/material-item.navigation.label'), [
+                EmployeeMaterialItemsRelationManager::class,
+                EmployeeMaterialTransactionsReceivedRelationManager::class,
+                EmployeeMaterialTransactionsSentRelationManager::class,
+            ])
+                ->icon('heroicon-o-cube');
+        }
 
         return $relations;
     }

@@ -48,6 +48,7 @@ class Project extends Model implements Sortable
         'start_date',
         'end_date',
         'allocated_hours',
+        'budget',
         'allow_timesheets',
         'allow_milestones',
         'allow_task_dependencies',
@@ -71,6 +72,7 @@ class Project extends Model implements Sortable
         'allow_timesheets'        => 'boolean',
         'allow_milestones'        => 'boolean',
         'allow_task_dependencies' => 'boolean',
+        'budget'                  => 'decimal:2',
     ];
 
     protected function getLogAttributeLabels(): array
@@ -85,6 +87,7 @@ class Project extends Model implements Sortable
             'start_date'              => __('projects::models/project.log-attributes.start_date'),
             'end_date'                => __('projects::models/project.log-attributes.end_date'),
             'allocated_hours'         => __('projects::models/project.log-attributes.allocated_hours'),
+            'budget'                  => __('projects::models/project.log-attributes.budget'),
             'allow_timesheets'        => __('projects::models/project.log-attributes.allow_timesheets'),
             'allow_milestones'        => __('projects::models/project.log-attributes.allow_milestones'),
             'allow_task_dependencies' => __('projects::models/project.log-attributes.allow_task_dependencies'),

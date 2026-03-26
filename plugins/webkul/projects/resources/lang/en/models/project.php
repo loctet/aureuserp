@@ -13,6 +13,7 @@ return [
         'start_date'               => 'Start Date',
         'end_date'                 => 'End Date',
         'allocated_hours'          => 'Allocated Hours',
+        'budget'                   => 'Budget',
         'allow_timesheets'         => 'Allow Timesheets',
         'allow_milestones'         => 'Allow Milestones',
         'allow_task_dependencies'  => 'Allow Task Dependencies',

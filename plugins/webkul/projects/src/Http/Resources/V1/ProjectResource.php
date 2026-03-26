@@ -23,6 +23,7 @@ class ProjectResource extends JsonResource
             'start_date'              => $this->start_date,
             'end_date'                => $this->end_date,
             'allocated_hours'         => (float) $this->allocated_hours,
+            'budget'                  => $this->budget !== null ? (float) $this->budget : null,
             'allow_timesheets'        => (bool) $this->allow_timesheets,
             'allow_milestones'        => (bool) $this->allow_milestones,
             'allow_task_dependencies' => (bool) $this->allow_task_dependencies,

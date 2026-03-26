@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('custom_fields', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
+            $table->string('code', 100);
             $table->string('name');
             $table->string('type');
             $table->string('input_type')->nullable();
@@ -25,7 +25,7 @@ return new class extends Migration
             $table->json('table_settings')->nullable();
             $table->json('infolist_settings')->nullable();
             $table->integer('sort')->nullable();
-            $table->string('customizable_type');
+            $table->string('customizable_type', 100);
             $table->unique(['code', 'customizable_type']);
             $table->softDeletes();
             $table->timestamps();

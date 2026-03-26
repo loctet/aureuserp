@@ -29,6 +29,7 @@ class ProjectRequest extends FormRequest
             'start_date'       => ['nullable', 'date', 'required_with:end_date', 'before_or_equal:end_date'],
             'end_date'         => ['nullable', 'date', 'required_with:start_date', 'after_or_equal:start_date'],
             'allocated_hours'  => ['nullable', 'numeric', 'min:0'],
+            'budget'           => ['nullable', 'numeric', 'min:0'],
             'allow_timesheets' => ['nullable', 'boolean'],
             'allow_milestones' => ['nullable', 'boolean'],
             'tags'             => ['nullable', 'array'],
@@ -78,6 +79,10 @@ class ProjectRequest extends FormRequest
             'allocated_hours' => [
                 'description' => 'Allocated effort in hours.',
                 'example'     => 120,
+            ],
+            'budget' => [
+                'description' => 'Project budget amount.',
+                'example'     => 50000.0,
             ],
             'allow_timesheets' => [
                 'description' => 'Allow timesheet entries.',

@@ -59,10 +59,11 @@ class ProjectController extends Controller
                 AllowedFilter::exact('allow_timesheets'),
                 AllowedFilter::exact('allow_milestones'),
                 AllowedFilter::exact('allow_task_dependencies'),
+                AllowedFilter::exact('budget'),
                 AllowedFilter::exact('visibility'),
                 AllowedFilter::trashed(),
             ])
-            ->allowedSorts(['id', 'name', 'sort', 'start_date', 'end_date', 'allocated_hours', 'created_at', 'updated_at'])
+            ->allowedSorts(['id', 'name', 'sort', 'start_date', 'end_date', 'allocated_hours', 'budget', 'created_at', 'updated_at'])
             ->allowedIncludes($this->allowedIncludes)
             ->paginate();
 

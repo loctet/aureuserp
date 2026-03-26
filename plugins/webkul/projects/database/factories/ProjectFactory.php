@@ -38,6 +38,7 @@ class ProjectFactory extends Factory
             'start_date'              => fake()->date(),
             'end_date'                => fake()->date(),
             'allocated_hours'         => fake()->randomNumber(),
+            'budget'                  => fake()->optional(0.7)->randomFloat(2, 1000, 500000),
             'allow_timesheets'        => true,
             'allow_milestones'        => false,
             'allow_task_dependencies' => false,

@@ -1,0 +1,30 @@
+{
+    "name": "webkul/material-inventory",
+    "description": "Serialized material and asset register with custody, lifecycle, and project budget rules",
+    "authors": [
+        {
+            "name": "Aureus ERP",
+            "email": "support@aureuserp.in"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\MaterialInventory\\MaterialInventoryServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Webkul\\MaterialInventory\\": "src/",
+            "Webkul\\MaterialInventory\\Database\\Factories\\": "database/factories/",
+            "Webkul\\MaterialInventory\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Webkul\\MaterialInventory\\Tests\\": "tests/"
+        }
+    }
+}

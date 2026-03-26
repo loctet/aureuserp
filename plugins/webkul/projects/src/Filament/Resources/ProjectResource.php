@@ -49,7 +49,9 @@ use Illuminate\Support\Facades\Auth;
 use Webkul\Field\Filament\Forms\Components\ProgressStepper as FormProgressStepper;
 use Webkul\Field\Filament\Infolists\Components\ProgressStepper as InfolistProgressStepper;
 use Webkul\Field\Filament\Traits\HasCustomFields;
+use Webkul\MaterialInventory\Filament\RelationManagers\ProjectMaterialItemsRelationManager;
 use Webkul\Partner\Filament\Resources\PartnerResource;
+use Webkul\PluginManager\Package;
 use Webkul\Project\Enums\ProjectVisibility;
 use Webkul\Project\Filament\Clusters\Configurations\Resources\TagResource;
 use Webkul\Project\Filament\Resources\ProjectResource\Pages\CreateProject;
@@ -76,7 +78,7 @@ class ProjectResource extends Resource
 
     protected static ?string $slug = 'project/projects';
 
-    protected static ?\Filament\Pages\Enums\SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
+    protected static ?SubNavigationPosition $subNavigationPosition = SubNavigationPosition::Top;
 
     protected static ?string $recordTitleAttribute = 'name';
 
@@ -163,6 +165,13 @@ class ProjectResource extends Resource
                                     ->numeric()
                                     ->helperText(__('projects::filament/resources/project.form.sections.additional.fields.allocated-hours-helper-text'))
                                     ->visible(static::getTimeSettings()->enable_timesheets)
+                                    ->rules(['nullable', 'numeric', 'min:0']),
+                                TextInput::make('budget')
+                                    ->label(__('projects::filament/resources/project.form.sections.additional.fields.budget'))
+                                    ->suffixIcon('heroicon-o-banknotes')
+                                    ->minValue(0)
+                                    ->numeric()
+                                    ->helperText(__('projects::filament/resources/project.form.sections.additional.fields.budget-helper-text'))
                                     ->rules(['nullable', 'numeric', 'min:0']),
                                 Select::make('tags')
                                     ->label(__('projects::filament/resources/project.form.sections.additional.fields.tags'))
@@ -333,6 +342,9 @@ class ProjectResource extends Resource
                         NumberConstraint::make('allocated_hours')
                             ->label(__('projects::filament/resources/project.table.filters.allocated-hours'))
                             ->icon('heroicon-o-clock'),
+                        NumberConstraint::make('budget')
+                            ->label(__('projects::filament/resources/project.table.filters.budget'))
+                            ->icon('heroicon-o-banknotes'),
                         DateConstraint::make('created_at')
                             ->label(__('projects::filament/resources/project.table.filters.created-at')),
                         DateConstraint::make('updated_at')
@@ -552,6 +564,16 @@ class ProjectResource extends Resource
                                             ->suffix(__('projects::filament/resources/project.infolist.sections.additional.entries.allocated-hours-suffix'))
                                             ->visible(static::getTimeSettings()->enable_timesheets),
 
+                                        TextEntry::make('budget')
+                                            ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.budget'))
+                                            ->icon('heroicon-o-banknotes')
+                                            ->placeholder('—')
+                                            ->numeric(
+                                                decimalPlaces: 2,
+                                                decimalSeparator: '.',
+                                                thousandsSeparator: ',',
+                                            ),
+
                                         TextEntry::make('remaining_hours')
                                             ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.remaining-hours'))
                                             ->icon('heroicon-o-clock')
@@ -679,7 +701,7 @@ class ProjectResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
+        $relations = [
             RelationGroup::make('Task Stages', [
                 TaskStagesRelationManager::class,
             ])
@@ -690,6 +712,15 @@ class ProjectResource extends Resource
             ])
                 ->icon('heroicon-o-flag'),
         ];
+
+        if (class_exists(ProjectMaterialItemsRelationManager::class) && Package::isPluginInstalled('material-inventory')) {
+            $relations[] = RelationGroup::make(__('material-inventory::filament/resources/material-item.navigation.label'), [
+                ProjectMaterialItemsRelationManager::class,
+            ])
+                ->icon('heroicon-o-cube');
+        }
+
+        return $relations;
     }
 
     public static function getPages(): array

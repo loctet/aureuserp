@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Webkul\Support\Models\Company;
@@ -44,10 +45,13 @@ class InstallERP extends Command
      */
     public function handle()
     {
-        if (
-            $this->isAlreadyInstalled()
-            && ! $this->option('force')
-        ) {
+        $isInstalled = $this->isAlreadyInstalled() || $this->hasExistingSchema();
+
+        if ($isInstalled && $this->option('force')) {
+            $this->info('🔄 Existing installation detected. Forcing reinstallation...');
+            $this->wipeDatabase();
+            $this->removeInstallationMarker();
+        } elseif ($isInstalled) {
             if (! $this->handleReinstallation()) {
                 $this->info('Installation cancelled.');
 
@@ -82,6 +86,18 @@ class InstallERP extends Command
         $filePath = storage_path('installed');
 
         return File::exists($filePath);
+    }
+
+    /**
+     * Detect whether the database already contains ERP tables.
+     */
+    protected function hasExistingSchema(): bool
+    {
+        try {
+            return Schema::hasTable('users');
+        } catch (Exception) {
+            return false;
+        }
     }
 
     /**
