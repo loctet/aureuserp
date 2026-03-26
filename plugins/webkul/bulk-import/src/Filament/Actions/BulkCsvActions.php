@@ -96,7 +96,10 @@ class BulkCsvActions
                 Notification::make()
                     ->warning()
                     ->title('Import completed with errors')
-                    ->body("Imported {$created} rows. Failed ".count($errors).' rows.')
+                    ->body(
+                        "Imported {$created} rows. Failed ".count($errors).' rows. '
+                        .'First errors: '.implode(' | ', array_slice($errors, 0, 3))
+                    )
                     ->send();
             });
     }
