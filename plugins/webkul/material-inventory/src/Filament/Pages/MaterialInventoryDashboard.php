@@ -9,6 +9,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource;
 use Webkul\MaterialInventory\Filament\Widgets\InventoryLifecycleChartWidget;
 use Webkul\MaterialInventory\Filament\Widgets\MaterialsByCategoryChartWidget;
+use Webkul\MaterialInventory\Filament\Widgets\MaterialsPerProjectReportWidget;
 use Webkul\MaterialInventory\Filament\Widgets\MaterialsByStatusChartWidget;
 use Webkul\MaterialInventory\Filament\Widgets\MaterialsOverviewStatsWidget;
 
@@ -64,6 +65,7 @@ class MaterialInventoryDashboard extends BaseDashboard
             MaterialsByStatusChartWidget::class,
             MaterialsByCategoryChartWidget::class,
             InventoryLifecycleChartWidget::class,
+            MaterialsPerProjectReportWidget::class,
         ];
     }
 }

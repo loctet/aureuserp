@@ -46,6 +46,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema as SchemaFacade;
 use Webkul\Field\Filament\Forms\Components\ProgressStepper as FormProgressStepper;
 use Webkul\Field\Filament\Infolists\Components\ProgressStepper as InfolistProgressStepper;
 use Webkul\Field\Filament\Traits\HasCustomFields;
@@ -280,6 +282,15 @@ class ProjectResource extends Resource
                             ->tooltip(__('projects::filament/resources/project.table.columns.remaining-hours')),
                     ])
                         ->visible(fn (Project $record) => static::getTimeSettings()->enable_timesheets && $record->allow_milestones && $record->remaining_hours),
+                    Stack::make([
+                        TextColumn::make('budget_overview')
+                            ->label(__('projects::filament/resources/project.table.columns.budget-overview'))
+                            ->icon('heroicon-o-banknotes')
+                            ->badge()
+                            ->state(fn (Project $record): string => static::formatProjectBudgetOverview($record))
+                            ->color(fn (Project $record): string => static::projectRemainingBudget($record) < 0 ? 'danger' : 'success'),
+                    ])
+                        ->visible(fn (): bool => static::hasMaterialInventoryTable()),
                     Stack::make([
                         TextColumn::make('user.name')
                             ->label(__('projects::filament/resources/project.table.columns.project-manager'))
@@ -568,11 +579,20 @@ class ProjectResource extends Resource
                                             ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.budget'))
                                             ->icon('heroicon-o-banknotes')
                                             ->placeholder('—')
-                                            ->numeric(
-                                                decimalPlaces: 2,
-                                                decimalSeparator: '.',
-                                                thousandsSeparator: ',',
-                                            ),
+                                            ->state(fn (Project $record): string => static::formatProjectBudgetOverview($record)),
+                                        TextEntry::make('materials_spend')
+                                            ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.materials-spend'))
+                                            ->icon('heroicon-o-cube')
+                                            ->state(fn (Project $record): float => static::projectMaterialsSpend($record))
+                                            ->money('EUR')
+                                            ->visible(fn (): bool => static::hasMaterialInventoryTable()),
+                                        TextEntry::make('remaining_budget')
+                                            ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.remaining-budget'))
+                                            ->icon('heroicon-o-scale')
+                                            ->state(fn (Project $record): float => static::projectRemainingBudget($record))
+                                            ->money('EUR')
+                                            ->color(fn (Project $record): string => static::projectRemainingBudget($record) < 0 ? 'danger' : 'success')
+                                            ->visible(fn (): bool => static::hasMaterialInventoryTable()),
 
                                         TextEntry::make('remaining_hours')
                                             ->label(__('projects::filament/resources/project.infolist.sections.additional.entries.remaining-hours'))
@@ -733,5 +753,42 @@ class ProjectResource extends Resource
             'milestones' => ManageMilestones::route('/{record}/milestones'),
             'tasks'      => ManageTasks::route('/{record}/tasks'),
         ];
+    }
+
+    protected static function hasMaterialInventoryTable(): bool
+    {
+        return Package::isPluginInstalled('material-inventory') && SchemaFacade::hasTable('material_inventory_items');
+    }
+
+    protected static function projectMaterialsSpend(Project $record): float
+    {
+        if (! static::hasMaterialInventoryTable()) {
+            return 0.0;
+        }
+
+        return (float) DB::table('material_inventory_items')
+            ->where('project_id', $record->getKey())
+            ->whereNull('deleted_at')
+            ->where('is_free', false)
+            ->sum('acquisition_cost');
+    }
+
+    protected static function projectRemainingBudget(Project $record): float
+    {
+        return (float) ($record->budget ?? 0) - static::projectMaterialsSpend($record);
+    }
+
+    protected static function formatProjectBudgetOverview(Project $record): string
+    {
+        $budget = (float) ($record->budget ?? 0);
+        $used = static::projectMaterialsSpend($record);
+        $remaining = $budget - $used;
+
+        return sprintf(
+            '%.2f (Used: %.2f, Remaining: %.2f)',
+            $budget,
+            $used,
+            $remaining
+        );
     }
 }

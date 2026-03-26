@@ -3,6 +3,7 @@
 namespace Webkul\MaterialInventory\Filament\RelationManagers;
 
 use Filament\Actions\CreateAction;
+use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -40,6 +41,24 @@ class ProjectMaterialItemsRelationManager extends RelationManager
             ->filters([])
             ->groups([])
             ->headerActions([
+                Action::make('materialsBudgetSummary')
+                    ->label(function (): string {
+                        $owner = $this->getOwnerRecord();
+                        $spent = (float) $owner->materialInventoryItems()
+                            ->where('is_free', false)
+                            ->sum('acquisition_cost');
+                        $budget = (float) ($owner->budget ?? 0);
+                        $remaining = $budget - $spent;
+
+                        return sprintf(
+                            'Materials used: %.2f | Remaining: %.2f',
+                            $spent,
+                            $remaining
+                        );
+                    })
+                    ->disabled()
+                    ->color('gray')
+                    ->icon('heroicon-o-banknotes'),
                 CreateAction::make()
                     ->mutateDataUsing(function (array $data): array {
                         $data['inventory_number'] = MaterialInventoryNumberIssuer::draftInventoryNumber();

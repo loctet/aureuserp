@@ -68,6 +68,7 @@ return [
             'end-date'        => 'End Date',
             'planned-date'    => 'Planned Date',
             'remaining-hours' => 'Remaining Hours',
+            'budget-overview' => 'Budget (materials)',
             'project-manager' => 'Project Manager',
         ],
 
@@ -157,6 +158,8 @@ return [
                     'allocated-hours'        => 'Allocated Hours',
                     'allocated-hours-suffix' => ' Hours',
                     'budget'                 => 'Budget',
+                    'materials-spend'        => 'Materials spend',
+                    'remaining-budget'       => 'Remaining budget',
                     'remaining-hours'        => 'Remaining Hours',
                     'remaining-hours-suffix' => ' Hours',
                     'current-stage'          => 'Current Stage',

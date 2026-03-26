@@ -68,6 +68,7 @@ return [
             'end-date'        => 'تاريخ النهاية',
             'planned-date'    => 'التاريخ المخطط',
             'remaining-hours' => 'الساعات المتبقية',
+            'budget-overview' => 'الميزانية (المواد)',
             'project-manager' => 'مدير المشروع',
         ],
 
@@ -157,6 +158,8 @@ return [
                     'allocated-hours'        => 'الساعات المخصصة',
                     'allocated-hours-suffix' => ' ساعة',
                     'budget'                 => 'الميزانية',
+                    'materials-spend'        => 'إنفاق المواد',
+                    'remaining-budget'       => 'الميزانية المتبقية',
                     'remaining-hours'        => 'الساعات المتبقية',
                     'remaining-hours-suffix' => ' ساعة',
                     'current-stage'          => 'المرحلة الحالية',
