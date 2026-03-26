@@ -10,10 +10,14 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\ValidationException;
 use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource;
+use Webkul\MaterialInventory\Models\MaterialItem;
 use Webkul\MaterialInventory\Services\MaterialInventoryNumberIssuer;
+use Webkul\MaterialInventory\Services\MaterialProjectBudgetGuard;
 use Webkul\PluginManager\Package;
 use Webkul\Project\Filament\Resources\ProjectResource\Pages\CreateProject;
+use Webkul\Project\Models\Project;
 
 class ProjectMaterialItemsRelationManager extends RelationManager
 {
@@ -64,6 +68,18 @@ class ProjectMaterialItemsRelationManager extends RelationManager
                         $data['inventory_number'] = MaterialInventoryNumberIssuer::draftInventoryNumber();
                         $data['project_id'] = $this->getOwnerRecord()->getKey();
                         $data['company_id'] ??= $this->getOwnerRecord()->company_id;
+
+                        $project = Project::find($data['project_id']);
+
+                        if ($project) {
+                            $candidate = new MaterialItem($data);
+
+                            if (! MaterialProjectBudgetGuard::canAssignItemToProject($project, $candidate)) {
+                                throw ValidationException::withMessages([
+                                    'project_id' => __('material-inventory::filament/resources/material-item.notifications.budget'),
+                                ]);
+                            }
+                        }
 
                         return $data;
                     })

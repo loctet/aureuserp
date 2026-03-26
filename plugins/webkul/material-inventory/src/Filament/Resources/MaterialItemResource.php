@@ -33,6 +33,7 @@ use Webkul\MaterialInventory\Filament\Resources\MaterialItemResource\RelationMan
 use Webkul\MaterialInventory\Models\MaterialItem;
 use Webkul\MaterialInventory\Settings\MaterialInventorySettings;
 use Webkul\Project\Filament\Resources\ProjectResource;
+use Webkul\Project\Models\Project;
 use Webkul\Security\Filament\Resources\CompanyResource;
 
 class MaterialItemResource extends Resource
@@ -187,6 +188,7 @@ class MaterialItemResource extends Resource
                         Select::make('project_id')
                             ->label(__('material-inventory::filament/resources/material-item.form.sections.custody.fields.project_id'))
                             ->relationship('project', 'name', fn (Builder $query) => $query->orderBy('name'))
+                            ->getOptionLabelFromRecordUsing(fn (Project $record): string => self::formatProjectOptionLabel($record))
                             ->searchable()
                             ->preload()
                             ->createOptionForm(fn (Schema $schema) => ProjectResource::form($schema)),
@@ -363,6 +365,33 @@ class MaterialItemResource extends Resource
             ->all();
 
         return $configured !== [] ? $configured : $defaults;
+    }
+
+    public static function projectOptionsWithRemainingBudget(): array
+    {
+        return Project::query()
+            ->orderBy('name')
+            ->get()
+            ->mapWithKeys(fn (Project $project): array => [
+                $project->getKey() => self::formatProjectOptionLabel($project),
+            ])
+            ->all();
+    }
+
+    public static function formatProjectOptionLabel(Project $project): string
+    {
+        if ($project->budget === null) {
+            return (string) $project->name;
+        }
+
+        $spent = (float) MaterialItem::query()
+            ->where('project_id', $project->getKey())
+            ->where('is_free', false)
+            ->sum('acquisition_cost');
+
+        $remaining = (float) $project->budget - $spent;
+
+        return sprintf('%s (Remaining: %.2f)', (string) $project->name, $remaining);
     }
 
     protected static function defaultStorageLocation(): string

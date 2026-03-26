@@ -17,12 +17,11 @@ final class MaterialProjectBudgetGuard
             return true;
         }
 
-        $cost = (float) ($item->acquisition_cost ?? 0);
-
-        if ($cost <= 0 || $project->budget === null) {
+        if ($project->budget === null) {
             return true;
         }
 
+        $cost = (float) ($item->acquisition_cost ?? 0);
         $budget = (float) $project->budget;
 
         $query = MaterialItem::query()
@@ -34,7 +33,13 @@ final class MaterialProjectBudgetGuard
         }
 
         $otherAllocated = (float) $query->sum('acquisition_cost');
+        $remainingBudget = $budget - $otherAllocated;
 
-        return ($otherAllocated + $cost) <= $budget;
+        // If there is no remaining budget, non-free items cannot be assigned.
+        if ($remainingBudget <= 0) {
+            return false;
+        }
+
+        return $cost <= $remainingBudget;
     }
 }

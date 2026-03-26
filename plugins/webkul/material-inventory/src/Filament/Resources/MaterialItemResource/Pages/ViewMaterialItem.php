@@ -268,7 +268,7 @@ class ViewMaterialItem extends ViewRecord
                         ->required(),
                     Select::make('repair_project_id')
                         ->label(__('material-inventory::filament/resources/material-item.actions.repair.project'))
-                        ->options(fn () => Project::query()->orderBy('name')->pluck('name', 'id'))
+                        ->options(fn () => MaterialItemResource::projectOptionsWithRemainingBudget())
                         ->searchable(),
                     Select::make('is_functional_after_repair')
                         ->label(__('material-inventory::filament/resources/material-item.actions.repair.functional_after'))
