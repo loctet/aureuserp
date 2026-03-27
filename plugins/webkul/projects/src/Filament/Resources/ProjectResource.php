@@ -177,6 +177,61 @@ class ProjectResource extends Resource
                                     ->numeric()
                                     ->helperText(__('projects::filament/resources/project.form.sections.additional.fields.budget-helper-text'))
                                     ->rules(['nullable', 'numeric', 'min:0']),
+                                Select::make('lifecycle_stage')
+                                    ->label('Lifecycle Stage')
+                                    ->options([
+                                        'proposal'         => 'Proposal',
+                                        'evaluation'       => 'Evaluation',
+                                        'negotiation'      => 'Negotiation',
+                                        'grant_agreement'  => 'Grant Agreement',
+                                        'active'           => 'Active',
+                                        'final_review'     => 'Final Review',
+                                        'closed'           => 'Closed',
+                                    ])
+                                    ->default('proposal')
+                                    ->required(),
+                                TextInput::make('cup_code')
+                                    ->label('CUP Code')
+                                    ->helperText('Mandatory for Italian public funds when applicable.')
+                                    ->maxLength(255),
+                                TextInput::make('grant_agreement_number')
+                                    ->label('Grant Agreement Number')
+                                    ->maxLength(255),
+                                TextInput::make('funding_programme')
+                                    ->label('Funding Programme')
+                                    ->maxLength(255),
+                                TextInput::make('co_financing_rate')
+                                    ->label('Co-financing rate (%)')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->maxValue(100),
+                                DatePicker::make('proposal_date')->native(false)->label('Proposal date'),
+                                DatePicker::make('evaluation_date')->native(false)->label('Evaluation date'),
+                                DatePicker::make('negotiation_date')->native(false)->label('Negotiation date'),
+                                DatePicker::make('grant_agreement_date')->native(false)->label('Grant agreement date'),
+                                DatePicker::make('active_date')->native(false)->label('Active date'),
+                                DatePicker::make('final_review_date')->native(false)->label('Final review date'),
+                                DatePicker::make('closed_date')->native(false)->label('Closed date'),
+                                DatePicker::make('reporting_period_start')->native(false)->label('Reporting period start'),
+                                DatePicker::make('reporting_period_end')->native(false)->label('Reporting period end'),
+                                TextInput::make('budget_personnel_planned')->label('Personnel planned')->numeric()->minValue(0),
+                                TextInput::make('budget_personnel_spent')->label('Personnel spent')->numeric()->minValue(0),
+                                TextInput::make('budget_personnel_committed')->label('Personnel committed')->numeric()->minValue(0),
+                                TextInput::make('budget_subcontracting_planned')->label('Subcontracting planned')->numeric()->minValue(0),
+                                TextInput::make('budget_subcontracting_spent')->label('Subcontracting spent')->numeric()->minValue(0),
+                                TextInput::make('budget_subcontracting_committed')->label('Subcontracting committed')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_equipment_planned')->label('Purchase equipment planned')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_equipment_spent')->label('Purchase equipment spent')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_equipment_committed')->label('Purchase equipment committed')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_other_planned')->label('Purchase other goods/services planned')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_other_spent')->label('Purchase other goods/services spent')->numeric()->minValue(0),
+                                TextInput::make('budget_purchase_other_committed')->label('Purchase other goods/services committed')->numeric()->minValue(0),
+                                TextInput::make('budget_other_categories_planned')->label('Other categories planned')->numeric()->minValue(0),
+                                TextInput::make('budget_other_categories_spent')->label('Other categories spent')->numeric()->minValue(0),
+                                TextInput::make('budget_other_categories_committed')->label('Other categories committed')->numeric()->minValue(0),
+                                TextInput::make('budget_indirect_costs_planned')->label('Indirect costs planned')->numeric()->minValue(0),
+                                TextInput::make('budget_indirect_costs_spent')->label('Indirect costs spent')->numeric()->minValue(0),
+                                TextInput::make('budget_indirect_costs_committed')->label('Indirect costs committed')->numeric()->minValue(0),
                                 Select::make('tags')
                                     ->label(__('projects::filament/resources/project.form.sections.additional.fields.tags'))
                                     ->relationship(name: 'tags', titleAttribute: 'name')
@@ -293,6 +348,30 @@ class ProjectResource extends Resource
                             ->color(fn (Project $record): string => static::projectRemainingBudget($record) < 0 ? 'danger' : 'success'),
                     ])
                         ->visible(fn (): bool => static::hasMaterialInventoryTable()),
+                    Stack::make([
+                        TextColumn::make('lifecycle_stage')
+                            ->badge()
+                            ->label('Lifecycle'),
+                    ]),
+                    Stack::make([
+                        TextColumn::make('budget_spent_total')
+                            ->label('Spent')
+                            ->icon('heroicon-o-banknotes')
+                            ->money('EUR'),
+                        TextColumn::make('budget_committed_total')
+                            ->label('Committed')
+                            ->icon('heroicon-o-clipboard-document-list')
+                            ->money('EUR'),
+                        TextColumn::make('budget_planned_total')
+                            ->label('Planned')
+                            ->icon('heroicon-o-calculator')
+                            ->money('EUR'),
+                        TextColumn::make('budget_burn_rate_percent')
+                            ->label('Burn rate')
+                            ->suffix('x')
+                            ->badge()
+                            ->color(fn (Project $record): string => $record->budget_burn_rate_percent > 1.1 ? 'danger' : 'success'),
+                    ]),
                     Stack::make([
                         TextColumn::make('user.name')
                             ->label(__('projects::filament/resources/project.table.columns.project-manager'))

@@ -49,6 +49,38 @@ class Project extends Model implements Sortable
         'end_date',
         'allocated_hours',
         'budget',
+        'lifecycle_stage',
+        'cup_code',
+        'grant_agreement_number',
+        'funding_programme',
+        'co_financing_rate',
+        'proposal_date',
+        'evaluation_date',
+        'negotiation_date',
+        'grant_agreement_date',
+        'active_date',
+        'final_review_date',
+        'closed_date',
+        'reporting_period_start',
+        'reporting_period_end',
+        'budget_personnel_planned',
+        'budget_personnel_spent',
+        'budget_personnel_committed',
+        'budget_subcontracting_planned',
+        'budget_subcontracting_spent',
+        'budget_subcontracting_committed',
+        'budget_purchase_equipment_planned',
+        'budget_purchase_equipment_spent',
+        'budget_purchase_equipment_committed',
+        'budget_purchase_other_planned',
+        'budget_purchase_other_spent',
+        'budget_purchase_other_committed',
+        'budget_other_categories_planned',
+        'budget_other_categories_spent',
+        'budget_other_categories_committed',
+        'budget_indirect_costs_planned',
+        'budget_indirect_costs_spent',
+        'budget_indirect_costs_committed',
         'allow_timesheets',
         'allow_milestones',
         'allow_task_dependencies',
@@ -73,6 +105,34 @@ class Project extends Model implements Sortable
         'allow_milestones'        => 'boolean',
         'allow_task_dependencies' => 'boolean',
         'budget'                  => 'decimal:2',
+        'co_financing_rate'       => 'decimal:2',
+        'proposal_date'           => 'date',
+        'evaluation_date'         => 'date',
+        'negotiation_date'        => 'date',
+        'grant_agreement_date'    => 'date',
+        'active_date'             => 'date',
+        'final_review_date'       => 'date',
+        'closed_date'             => 'date',
+        'reporting_period_start'  => 'date',
+        'reporting_period_end'    => 'date',
+        'budget_personnel_planned' => 'decimal:2',
+        'budget_personnel_spent'   => 'decimal:2',
+        'budget_personnel_committed' => 'decimal:2',
+        'budget_subcontracting_planned' => 'decimal:2',
+        'budget_subcontracting_spent' => 'decimal:2',
+        'budget_subcontracting_committed' => 'decimal:2',
+        'budget_purchase_equipment_planned' => 'decimal:2',
+        'budget_purchase_equipment_spent' => 'decimal:2',
+        'budget_purchase_equipment_committed' => 'decimal:2',
+        'budget_purchase_other_planned' => 'decimal:2',
+        'budget_purchase_other_spent' => 'decimal:2',
+        'budget_purchase_other_committed' => 'decimal:2',
+        'budget_other_categories_planned' => 'decimal:2',
+        'budget_other_categories_spent' => 'decimal:2',
+        'budget_other_categories_committed' => 'decimal:2',
+        'budget_indirect_costs_planned' => 'decimal:2',
+        'budget_indirect_costs_spent' => 'decimal:2',
+        'budget_indirect_costs_committed' => 'decimal:2',
     ];
 
     protected function getLogAttributeLabels(): array
@@ -149,6 +209,63 @@ class Project extends Model implements Sortable
     public function getRemainingHoursAttribute(): float
     {
         return $this->allocated_hours - $this->tasks->sum('remaining_hours');
+    }
+
+    public function getBudgetPlannedTotalAttribute(): float
+    {
+        return (float) (
+            $this->budget_personnel_planned
+            + $this->budget_subcontracting_planned
+            + $this->budget_purchase_equipment_planned
+            + $this->budget_purchase_other_planned
+            + $this->budget_other_categories_planned
+            + $this->budget_indirect_costs_planned
+        );
+    }
+
+    public function getBudgetSpentTotalAttribute(): float
+    {
+        return (float) (
+            $this->budget_personnel_spent
+            + $this->budget_subcontracting_spent
+            + $this->budget_purchase_equipment_spent
+            + $this->budget_purchase_other_spent
+            + $this->budget_other_categories_spent
+            + $this->budget_indirect_costs_spent
+        );
+    }
+
+    public function getBudgetCommittedTotalAttribute(): float
+    {
+        return (float) (
+            $this->budget_personnel_committed
+            + $this->budget_subcontracting_committed
+            + $this->budget_purchase_equipment_committed
+            + $this->budget_purchase_other_committed
+            + $this->budget_other_categories_committed
+            + $this->budget_indirect_costs_committed
+        );
+    }
+
+    public function getTimelineProgressPercentAttribute(): float
+    {
+        if (! $this->start_date || ! $this->end_date || $this->end_date->lt($this->start_date)) {
+            return 0.0;
+        }
+
+        $totalDays = max(1, $this->start_date->diffInDays($this->end_date));
+        $elapsedDays = max(0, min($totalDays, $this->start_date->diffInDays(now())));
+
+        return round(($elapsedDays / $totalDays) * 100, 2);
+    }
+
+    public function getBudgetBurnRatePercentAttribute(): float
+    {
+        $planned = max(0.01, $this->budget_planned_total);
+        $spentPercent = ($this->budget_spent_total / $planned) * 100;
+        $timelinePercent = max(0.01, $this->timeline_progress_percent);
+
+        return round($spentPercent / $timelinePercent, 2);
     }
 
     public function milestones(): HasMany

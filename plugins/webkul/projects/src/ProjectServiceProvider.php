@@ -33,6 +33,7 @@ class ProjectServiceProvider extends PackageServiceProvider
                 '2026_03_25_120000_add_budget_to_projects_projects_table',
                 '2026_03_27_100100_create_projects_work_packages_table',
                 '2026_03_27_101000_create_projects_project_required_skills_table',
+                '2026_03_27_102000_add_horizon_budget_and_lifecycle_to_projects_table',
             ])
             ->runsMigrations()
             ->hasSettings([
