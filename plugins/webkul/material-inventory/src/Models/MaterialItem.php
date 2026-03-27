@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Schema;
 use Webkul\Employee\Models\Employee;
 use Webkul\MaterialInventory\Enums\MaterialSheetStatus;
 use Webkul\MaterialInventory\Enums\MaterialTransactionType;
+use Webkul\MaterialInventory\Services\MaterialProjectEquipmentCostSync;
 use Webkul\MaterialInventory\Services\MaterialInventoryTransactionRecorder;
 use Webkul\Project\Models\Project;
 use Webkul\Support\Models\Company;
@@ -130,6 +131,8 @@ class MaterialItem extends Model
     protected static function booted(): void
     {
         static::created(function (MaterialItem $item): void {
+            MaterialProjectEquipmentCostSync::syncProject($item->project_id);
+
             if (! $item->project_id) {
                 return;
             }
@@ -150,6 +153,20 @@ class MaterialItem extends Model
         });
 
         static::updated(function (MaterialItem $item): void {
+            $projectChanged = $item->wasChanged('project_id');
+            $costImpactChanged = $item->wasChanged('acquisition_cost') || $item->wasChanged('is_free');
+
+            if ($projectChanged) {
+                $from = (int) ($item->materialInventoryProjectChangeFrom ?: 0);
+                if ($from > 0) {
+                    MaterialProjectEquipmentCostSync::syncProject($from);
+                }
+
+                MaterialProjectEquipmentCostSync::syncProject($item->project_id);
+            } elseif ($costImpactChanged) {
+                MaterialProjectEquipmentCostSync::syncProject($item->project_id);
+            }
+
             if (! $item->wasChanged('project_id')) {
                 return;
             }
@@ -165,6 +182,15 @@ class MaterialItem extends Model
                     'to_project_id'   => $item->project_id,
                 ],
             );
+        });
+
+        static::deleted(function (MaterialItem $item): void {
+            $projectId = (int) ($item->project_id ?: $item->getOriginal('project_id'));
+            MaterialProjectEquipmentCostSync::syncProject($projectId > 0 ? $projectId : null);
+        });
+
+        static::restored(function (MaterialItem $item): void {
+            MaterialProjectEquipmentCostSync::syncProject($item->project_id);
         });
     }
 }

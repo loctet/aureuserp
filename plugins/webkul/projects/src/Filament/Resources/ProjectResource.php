@@ -706,6 +706,107 @@ class ProjectResource extends Resource
                                     ]),
                             ])),
 
+                        Section::make('Horizon Lifecycle & Budget')
+                            ->schema([
+                                Grid::make(2)
+                                    ->schema([
+                                        TextEntry::make('lifecycle_stage')
+                                            ->label('Lifecycle stage')
+                                            ->badge(),
+                                        TextEntry::make('funding_programme')
+                                            ->label('Funding programme')
+                                            ->placeholder('—'),
+                                        TextEntry::make('cup_code')
+                                            ->label('CUP code')
+                                            ->placeholder('—'),
+                                        TextEntry::make('grant_agreement_number')
+                                            ->label('Grant Agreement number')
+                                            ->placeholder('—'),
+                                        TextEntry::make('co_financing_rate')
+                                            ->label('Co-financing rate')
+                                            ->suffix('%')
+                                            ->placeholder('—'),
+                                        TextEntry::make('reporting_period')
+                                            ->label('Reporting period')
+                                            ->state(function (Project $record): string {
+                                                if (! $record->reporting_period_start || ! $record->reporting_period_end) {
+                                                    return '—';
+                                                }
+
+                                                return $record->reporting_period_start->format('d M Y').' - '.$record->reporting_period_end->format('d M Y');
+                                            }),
+                                        TextEntry::make('proposal_date')
+                                            ->label('Proposal date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('evaluation_date')
+                                            ->label('Evaluation date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('negotiation_date')
+                                            ->label('Negotiation date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('grant_agreement_date')
+                                            ->label('Grant agreement date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('active_date')
+                                            ->label('Active date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('final_review_date')
+                                            ->label('Final review date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('closed_date')
+                                            ->label('Closed date')
+                                            ->date()
+                                            ->placeholder('—'),
+                                        TextEntry::make('budget_burn_rate_percent')
+                                            ->label('Burn rate')
+                                            ->suffix('x')
+                                            ->badge()
+                                            ->color(fn (Project $record): string => $record->budget_burn_rate_percent > 1.1 ? 'danger' : 'success'),
+                                        TextEntry::make('budget_planned_total')
+                                            ->label('Planned total')
+                                            ->money('EUR'),
+                                        TextEntry::make('budget_spent_total')
+                                            ->label('Spent total')
+                                            ->money('EUR'),
+                                        TextEntry::make('budget_committed_total')
+                                            ->label('Committed total')
+                                            ->money('EUR'),
+                                    ]),
+
+                                Grid::make(3)
+                                    ->schema([
+                                        TextEntry::make('budget_personnel_planned')->label('Personnel planned')->money('EUR'),
+                                        TextEntry::make('budget_personnel_spent')->label('Personnel spent')->money('EUR'),
+                                        TextEntry::make('budget_personnel_committed')->label('Personnel committed')->money('EUR'),
+
+                                        TextEntry::make('budget_subcontracting_planned')->label('Subcontracting planned')->money('EUR'),
+                                        TextEntry::make('budget_subcontracting_spent')->label('Subcontracting spent')->money('EUR'),
+                                        TextEntry::make('budget_subcontracting_committed')->label('Subcontracting committed')->money('EUR'),
+
+                                        TextEntry::make('budget_purchase_equipment_planned')->label('Purchase equipment planned')->money('EUR'),
+                                        TextEntry::make('budget_purchase_equipment_spent')->label('Purchase equipment spent')->money('EUR'),
+                                        TextEntry::make('budget_purchase_equipment_committed')->label('Purchase equipment committed')->money('EUR'),
+
+                                        TextEntry::make('budget_purchase_other_planned')->label('Purchase other goods/services planned')->money('EUR'),
+                                        TextEntry::make('budget_purchase_other_spent')->label('Purchase other goods/services spent')->money('EUR'),
+                                        TextEntry::make('budget_purchase_other_committed')->label('Purchase other goods/services committed')->money('EUR'),
+
+                                        TextEntry::make('budget_other_categories_planned')->label('Other categories planned')->money('EUR'),
+                                        TextEntry::make('budget_other_categories_spent')->label('Other categories spent')->money('EUR'),
+                                        TextEntry::make('budget_other_categories_committed')->label('Other categories committed')->money('EUR'),
+
+                                        TextEntry::make('budget_indirect_costs_planned')->label('Indirect costs planned')->money('EUR'),
+                                        TextEntry::make('budget_indirect_costs_spent')->label('Indirect costs spent')->money('EUR'),
+                                        TextEntry::make('budget_indirect_costs_committed')->label('Indirect costs committed')->money('EUR'),
+                                    ]),
+                            ]),
+
                         Section::make(__('projects::filament/resources/project.infolist.sections.statistics.title'))
                             ->schema([
                                 Grid::make(2)
