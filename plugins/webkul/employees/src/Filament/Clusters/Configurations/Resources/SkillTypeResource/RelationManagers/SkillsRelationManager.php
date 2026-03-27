@@ -12,6 +12,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
@@ -21,6 +22,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Grouping\Group;
 use Filament\Tables\Table;
+use Webkul\Employee\Models\SkillDiscipline;
 
 class SkillsRelationManager extends RelationManager
 {
@@ -35,6 +37,11 @@ class SkillsRelationManager extends RelationManager
                 TextInput::make('name')
                     ->label(__('employees::filament/clusters/configurations/resources/skill-type/relation-managers/skills.form.name'))
                     ->required(),
+                Select::make('skill_discipline_id')
+                    ->label('Discipline')
+                    ->options(SkillDiscipline::query()->pluck('name', 'id'))
+                    ->searchable()
+                    ->preload(),
             ])->columns(1);
     }
 
@@ -45,6 +52,9 @@ class SkillsRelationManager extends RelationManager
                 TextColumn::make('name')
                     ->label(__('employees::filament/clusters/configurations/resources/skill-type/relation-managers/skills.table.columns.name'))
                     ->searchable()
+                    ->sortable(),
+                TextColumn::make('discipline.name')
+                    ->label('Discipline')
                     ->sortable(),
                 TextColumn::make('created_at')
                     ->label(__('employees::filament/clusters/configurations/resources/skill-type/relation-managers/skills.table.columns.created-at'))
@@ -132,6 +142,9 @@ class SkillsRelationManager extends RelationManager
                 TextEntry::make('name')
                     ->placeholder('—')
                     ->label(__('employees::filament/clusters/configurations/resources/skill-type/relation-managers/skills.infolist.entries.name')),
+                TextEntry::make('discipline.name')
+                    ->placeholder('—')
+                    ->label('Discipline'),
             ]);
     }
 }

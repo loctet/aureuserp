@@ -63,7 +63,9 @@ use Webkul\Project\Filament\Resources\ProjectResource\Pages\ManageMilestones;
 use Webkul\Project\Filament\Resources\ProjectResource\Pages\ManageTasks;
 use Webkul\Project\Filament\Resources\ProjectResource\Pages\ViewProject;
 use Webkul\Project\Filament\Resources\ProjectResource\RelationManagers\MilestonesRelationManager;
+use Webkul\Project\Filament\Resources\ProjectResource\RelationManagers\RequiredSkillsRelationManager;
 use Webkul\Project\Filament\Resources\ProjectResource\RelationManagers\TaskStagesRelationManager;
+use Webkul\Project\Filament\Resources\ProjectResource\RelationManagers\WorkPackagesRelationManager;
 use Webkul\Project\Models\Project;
 use Webkul\Project\Models\ProjectStage;
 use Webkul\Project\Settings\TaskSettings;
@@ -731,7 +733,18 @@ class ProjectResource extends Resource
                 MilestonesRelationManager::class,
             ])
                 ->icon('heroicon-o-flag'),
+            RelationGroup::make('Work Packages', [
+                WorkPackagesRelationManager::class,
+            ])
+                ->icon('heroicon-o-rectangle-stack'),
         ];
+
+        if (class_exists(RequiredSkillsRelationManager::class) && Package::isPluginInstalled('employees')) {
+            $relations[] = RelationGroup::make('Required Skills', [
+                RequiredSkillsRelationManager::class,
+            ])
+                ->icon('heroicon-o-academic-cap');
+        }
 
         if (class_exists(ProjectMaterialItemsRelationManager::class) && Package::isPluginInstalled('material-inventory')) {
             $relations[] = RelationGroup::make(__('material-inventory::filament/resources/material-item.navigation.label'), [

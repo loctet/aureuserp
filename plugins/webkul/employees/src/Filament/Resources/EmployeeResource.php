@@ -70,11 +70,13 @@ use Webkul\Employee\Filament\Resources\EmployeeResource\Pages\ListEmployees;
 use Webkul\Employee\Filament\Resources\EmployeeResource\Pages\ManageResume;
 use Webkul\Employee\Filament\Resources\EmployeeResource\Pages\ManageSkill;
 use Webkul\Employee\Filament\Resources\EmployeeResource\Pages\ViewEmployee;
+use Webkul\Employee\Filament\Resources\EmployeeResource\RelationManagers\MonthlyAvailabilityRelationManager;
 use Webkul\Employee\Filament\Resources\EmployeeResource\RelationManagers\ResumeRelationManager;
 use Webkul\Employee\Filament\Resources\EmployeeResource\RelationManagers\SkillsRelationManager;
 use Webkul\Employee\Models\Calendar;
 use Webkul\Employee\Models\Employee;
 use Webkul\Field\Filament\Traits\HasCustomFields;
+use Webkul\Contracts\Filament\RelationManagers\EmployeeContractsRelationManager;
 use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialItemsRelationManager;
 use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialTransactionsReceivedRelationManager;
 use Webkul\MaterialInventory\Filament\RelationManagers\EmployeeMaterialTransactionsSentRelationManager;
@@ -1799,7 +1801,18 @@ class EmployeeResource extends Resource
                 ResumeRelationManager::class,
             ])
                 ->icon('heroicon-o-clipboard-document-list'),
+            RelationGroup::make('Availability', [
+                MonthlyAvailabilityRelationManager::class,
+            ])
+                ->icon('heroicon-o-calendar-days'),
         ];
+
+        if (class_exists(EmployeeContractsRelationManager::class) && Package::isPluginInstalled('contracts')) {
+            $relations[] = RelationGroup::make('Contracts', [
+                EmployeeContractsRelationManager::class,
+            ])
+                ->icon('icon-contracts');
+        }
 
         if (class_exists(EmployeeMaterialItemsRelationManager::class) && Package::isPluginInstalled('material-inventory')) {
             $relations[] = RelationGroup::make(__('material-inventory::filament/resources/material-item.navigation.label'), [

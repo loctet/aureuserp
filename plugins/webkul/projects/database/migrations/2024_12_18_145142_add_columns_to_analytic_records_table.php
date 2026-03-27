@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('analytic_records')) {
+            return;
+        }
+
         Schema::table('analytic_records', function (Blueprint $table) {
             $table->foreignId('project_id')
                 ->nullable()
@@ -29,9 +33,18 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('analytic_records')) {
+            return;
+        }
+
         Schema::table('analytic_records', function (Blueprint $table) {
-            $table->dropConstrainedForeignId('project_id');
-            $table->dropConstrainedForeignId('task_id');
+            if (Schema::hasColumn('analytic_records', 'project_id')) {
+                $table->dropConstrainedForeignId('project_id');
+            }
+
+            if (Schema::hasColumn('analytic_records', 'task_id')) {
+                $table->dropConstrainedForeignId('task_id');
+            }
         });
     }
 };

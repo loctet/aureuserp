@@ -24,6 +24,7 @@ class Skill extends Model implements Sortable
         'sort',
         'name',
         'skill_type_id',
+        'skill_discipline_id',
         'creator_id',
     ];
 
@@ -35,6 +36,11 @@ class Skill extends Model implements Sortable
     public function skillType(): BelongsTo
     {
         return $this->belongsTo(SkillType::class, 'skill_type_id');
+    }
+
+    public function discipline(): BelongsTo
+    {
+        return $this->belongsTo(SkillDiscipline::class, 'skill_discipline_id');
     }
 
     public function skillLevels()

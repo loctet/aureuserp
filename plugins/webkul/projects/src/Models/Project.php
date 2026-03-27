@@ -161,6 +161,16 @@ class Project extends Model implements Sortable
         return $this->hasMany(Task::class);
     }
 
+    public function workPackages(): HasMany
+    {
+        return $this->hasMany(WorkPackage::class, 'project_id');
+    }
+
+    public function requiredSkills(): HasMany
+    {
+        return $this->hasMany(ProjectRequiredSkill::class, 'project_id');
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);

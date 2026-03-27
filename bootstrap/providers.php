@@ -10,6 +10,7 @@ use Webkul\Blog\BlogServiceProvider;
 use Webkul\BulkImport\BulkImportServiceProvider;
 use Webkul\Chatter\ChatterServiceProvider;
 use Webkul\Contact\ContactServiceProvider;
+use Webkul\Contracts\ContractsServiceProvider;
 use Webkul\Employee\EmployeeServiceProvider;
 use Webkul\Field\FieldServiceProvider;
 use Webkul\FullCalendar\FullCalendarServiceProvider;
@@ -42,6 +43,7 @@ return [
     BulkImportServiceProvider::class,
     ChatterServiceProvider::class,
     ContactServiceProvider::class,
+    ContractsServiceProvider::class,
     EmployeeServiceProvider::class,
     FieldServiceProvider::class,
     InventoryServiceProvider::class,

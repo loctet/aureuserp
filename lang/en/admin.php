@@ -11,6 +11,7 @@ return [
         'inventory'          => 'Inventory',
         'material-inventory' => 'Material inventory',
         'project'            => 'Project',
+        'contracts'          => 'Contracts',
         'employee'           => 'Employees',
         'time-off'           => 'Time Off',
         'recruitment'        => 'Recruitments',

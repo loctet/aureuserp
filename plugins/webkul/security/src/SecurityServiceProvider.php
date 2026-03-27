@@ -4,6 +4,8 @@ namespace Webkul\Security;
 
 use Filament\Panel;
 use Illuminate\Foundation\AliasLoader;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Webkul\PluginManager\Package;
 use Webkul\PluginManager\PackageServiceProvider;
 use Webkul\Security\Facades\Bouncer as BouncerFacade;
@@ -45,6 +47,8 @@ class SecurityServiceProvider extends PackageServiceProvider
     public function packageBooted(): void
     {
         require_once __DIR__.'/Helpers/helpers.php';
+
+        $this->ensureRequiredUserSettingsExist();
     }
 
     public function packageRegistered(): void
@@ -59,5 +63,35 @@ class SecurityServiceProvider extends PackageServiceProvider
 
         $this->app->singleton('bouncer', Bouncer::class);
         $this->app->singleton(PermissionRegistrar::class);
+    }
+
+    protected function ensureRequiredUserSettingsExist(): void
+    {
+        if (! Schema::hasTable('settings')) {
+            return;
+        }
+
+        $now = now();
+
+        $defaults = [
+            'enable_user_invitation' => true,
+            'enable_reset_password'  => true,
+            'default_role_id'        => null,
+            'default_company_id'     => null,
+        ];
+
+        foreach ($defaults as $name => $value) {
+            DB::table('settings')->updateOrInsert(
+                [
+                    'group' => 'general',
+                    'name'  => $name,
+                ],
+                [
+                    'payload'    => json_encode($value),
+                    'updated_at' => $now,
+                    'created_at' => $now,
+                ]
+            );
+        }
     }
 }

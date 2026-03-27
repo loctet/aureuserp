@@ -11,6 +11,7 @@ return [
         'inventory'          => 'المخزون',
         'material-inventory' => 'مخزون المواد والأصول',
         'project'            => 'المشاريع',
+        'contracts'          => 'العقود',
         'employee'           => 'الموظفين',
         'time-off'           => 'الإجازات',
         'recruitment'        => 'التوظيف',

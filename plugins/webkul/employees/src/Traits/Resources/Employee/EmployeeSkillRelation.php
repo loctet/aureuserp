@@ -9,8 +9,8 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Hidden;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Group;
@@ -20,6 +20,11 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Webkul\Employee\Models\Employee;
+use Webkul\Employee\Models\EmployeeSkill;
+use Webkul\Employee\Models\Skill;
+use Webkul\Employee\Models\SkillDiscipline;
+use Webkul\Employee\Models\SkillDomain;
 use Webkul\Employee\Models\SkillType;
 use Webkul\Support\Filament\Tables as CustomTables;
 
@@ -32,29 +37,90 @@ trait EmployeeSkillRelation
                 Section::make([
                     Hidden::make('creator_id')
                         ->default(fn () => Auth::user()->id),
-                    Radio::make('skill_type_id')
+                    Select::make('skill_domain_id')
+                        ->label('Domain')
+                        ->options(SkillDomain::query()->pluck('name', 'id'))
+                        ->required()
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateUpdated(fn (callable $set) => $set('skill_discipline_id', null)),
+                    Select::make('skill_discipline_id')
+                        ->label('Discipline')
+                        ->options(
+                            fn (callable $get) => SkillDiscipline::query()
+                                ->where('skill_domain_id', $get('skill_domain_id'))
+                                ->pluck('name', 'id')
+                        )
+                        ->required()
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateUpdated(fn (callable $set) => $set('skill_id', null)),
+                    Select::make('skill_type_id')
                         ->label(__('employees::filament/resources/employee/relation-manager/skill.form.sections.fields.skill-type'))
                         ->options(SkillType::pluck('name', 'id'))
-                        ->default(fn () => SkillType::first()?->id)
                         ->required()
-                        ->reactive()
-                        ->afterStateUpdated(fn (callable $set) => $set('skill_id', null)),
+                        ->live()
+                        ->afterStateUpdated(fn (callable $set) => $set('skill_level_id', null)),
                     Group::make()
                         ->schema([
                             Select::make('skill_id')
                                 ->label(__('employees::filament/resources/employee/relation-manager/skill.form.sections.fields.skill'))
                                 ->options(
-                                    fn (callable $get) => SkillType::find($get('skill_type_id'))?->skills->pluck('name', 'id') ?? []
+                                    fn (callable $get) => Skill::query()
+                                        ->where('skill_type_id', $get('skill_type_id'))
+                                        ->when($get('skill_discipline_id'), fn ($query, $disciplineId) => $query->where('skill_discipline_id', $disciplineId))
+                                        ->pluck('name', 'id')
                                 )
                                 ->required()
-                                ->reactive()
-                                ->afterStateUpdated(fn (callable $set) => $set('skill_level_id', null)),
+                                ->live()
+                                ->afterStateUpdated(function (callable $set, $state): void {
+                                    $skill = Skill::find($state);
+                                    $set('skill_type_id', $skill?->skill_type_id);
+                                    $set('skill_level_id', null);
+                                }),
                             Select::make('skill_level_id')
                                 ->label(__('employees::filament/resources/employee/relation-manager/skill.form.sections.fields.skill-level'))
                                 ->options(
                                     fn (callable $get) => SkillType::find($get('skill_type_id'))?->skillLevels->pluck('name', 'id') ?? []
                                 )
                                 ->required(),
+                            Select::make('proficiency')
+                                ->options([
+                                    'basic'        => 'Basic',
+                                    'intermediate' => 'Intermediate',
+                                    'advanced'     => 'Advanced',
+                                    'expert'       => 'Expert',
+                                ])
+                                ->default(EmployeeSkill::PROFICIENCY_BASIC)
+                                ->required(),
+                            Select::make('validation_status')
+                                ->options([
+                                    'pending'   => 'Pending',
+                                    'validated' => 'Validated',
+                                    'rejected'  => 'Rejected',
+                                ])
+                                ->default(EmployeeSkill::VALIDATION_PENDING)
+                                ->required(),
+                            Select::make('validated_by')
+                                ->label('Validated By')
+                                ->options(function (): array {
+                                    $owner = method_exists($this, 'getOwnerRecord') ? $this->getOwnerRecord() : null;
+                                    $managerId = $owner?->department?->manager_id;
+
+                                    if ($managerId) {
+                                        return Employee::query()
+                                            ->whereKey($managerId)
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    }
+
+                                    return Employee::query()->pluck('name', 'id')->toArray();
+                                })
+                                ->searchable()
+                                ->helperText('Defaults to the employee area manager when assigned.'),
+                            Textarea::make('validation_notes')
+                                ->label('Validation Notes')
+                                ->rows(3),
                         ]),
                 ])->columns(2)->columnSpanFull(),
             ]);
@@ -70,10 +136,17 @@ trait EmployeeSkillRelation
                 TextColumn::make('skill.name')
                     ->label(__('employees::filament/resources/employee/relation-manager/skill.table.columns.skill'))
                     ->sortable(),
+                TextColumn::make('proficiency')
+                    ->badge(),
                 TextColumn::make('skillLevel.name')
                     ->label(__('employees::filament/resources/employee/relation-manager/skill.table.columns.skill-level'))
                     ->badge()
                     ->color(fn ($record) => $record->skillType?->color),
+                TextColumn::make('validation_status')
+                    ->badge(),
+                TextColumn::make('validatedBy.name')
+                    ->label('Validated By')
+                    ->sortable(),
                 CustomTables\Columns\ProgressBarEntry::make('skillLevel.level')
                     ->getStateUsing(fn ($record) => $record->skillLevel?->level)
                     ->color(function ($record) {

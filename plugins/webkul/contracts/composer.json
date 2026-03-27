@@ -1,0 +1,30 @@
+{
+    "name": "webkul/contracts",
+    "description": "Contracts and workforce planning for skills, availability, and allocations",
+    "authors": [
+        {
+            "name": "Aureus ERP",
+            "email": "support@aureuserp.in"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Webkul\\Contracts\\ContractsServiceProvider"
+            ],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Webkul\\Contracts\\": "src/",
+            "Webkul\\Contracts\\Database\\Factories\\": "database/factories/",
+            "Webkul\\Contracts\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Webkul\\Contracts\\Tests\\": "tests/"
+        }
+    }
+}
